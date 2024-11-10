@@ -16851,7 +16851,7 @@ GameObject:
   - component: {fileID: 1930448405}
   - component: {fileID: 1930448404}
   m_Layer: 0
-  m_Name: '[BuildingBlock] Cube'
+  m_Name: '[BuildingBlock] Grabbable sphere'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
