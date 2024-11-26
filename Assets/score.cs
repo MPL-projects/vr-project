@@ -1,31 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI; // Nécessaire pour manipuler du texte UI
 
 public class Score : MonoBehaviour
 {
-    private bool isScored;
-    private GameObject corbeille;
+    private int scoreValue = 0; // Le score actuel
+    private Text scoreText; // Référence au composant Text de l'UI
 
-    // Start is called before the first frame update
+    // Start est appelé avant le premier frame
     void Start()
     {
-        isScored = false;
+        // Trouve automatiquement l'objet avec le nom "ScoreText"
+        scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
 
-        corbeille = GameObject.Find("Corbeille");
-        if (corbeille == null)
+        if (scoreText == null)
         {
-            Debug.LogError("Corbeille non trouvée dans la scène !");
+            Debug.LogError("Aucun objet nommé 'ScoreText' trouvé ou le composant Text n'est pas attaché !");
+        }
+        else
+        {
+            UpdateScoreText(); // Initialise l'affichage du score
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    // Méthode pour mettre à jour le texte du score
+    void UpdateScoreText()
     {
-        if (!isScored /*condition*/)
+        scoreText.text = scoreValue.ToString();
+    }
+
+    // Méthode appelée lorsqu'une balle entre en collision avec le cylindre
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Vérifie si l'objet en collision a le tag "Ball"
+        if (collision.gameObject.CompareTag("Ball")) // Assurez-vous que vos balles ont le tag "Ball"
         {
-            isScored = false;
-            corbeille.GetComponent<MeshRenderer>().material.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
+            scoreValue++; // Augmente le score
+            UpdateScoreText(); // Met à jour le texte du score
         }
     }
 }
