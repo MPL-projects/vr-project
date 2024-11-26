@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI; // Nécessaire pour manipuler du texte UI
+using TMPro;
 
 public class Score : MonoBehaviour
 {
@@ -10,33 +11,52 @@ public class Score : MonoBehaviour
     private GameObject cylinder;
     private GameObject ball;
     private int scoreValue = 0; // Le score actuel
-    private Text scoreText; // Référence au composant Text de l'UI
+    private TMP_Text scoreText; // Référence au composant Text de l'UI
 
     // Start est appelé avant le premier frame
     void Start()
     {
-        // Trouve automatiquement l'objet avec le nom "ScoreText"
-        scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
+        // Trouver "ScoreText" sous "Canvas > Panel"
+        GameObject scoreTextObject = GameObject.Find("Canvas/Panel/ScoreText");
+        if (scoreTextObject == null)
+        {
+            Debug.LogError("ScoreText introuvable dans la hiérarchie !");
+            return;
+        }
 
-        corbeille = GameObject.Find("Corbeille");
-        cylinder = GameObject.Find("Cylinder");
-        ball = GameObject.Find("[BuildingBlock] Grabbable sphere");
-
-        if (corbeille == null){ Debug.LogError("Corbeille non trouvée dans la scène"); }
-        if (cylinder == null){ Debug.LogError("Cylindre non trouvée dans la scène"); }
-        if (ball == null){ Debug.LogError("Balle non trouvée dans la scène"); }
+        // Trouver la composante de texte dans le game object
+        scoreText = scoreTextObject.GetComponent<TMP_Text>();
         if (scoreText == null)
         {
-            Debug.LogError("Aucun objet nommé 'ScoreText' trouvé ou le composant Text n'est pas attaché !");
+            Debug.LogError("Composant TMP_Text manquant sur ScoreText !");
+            return;
         }
-        else
-        {
-            UpdateScoreText(); // Initialise l'affichage du score
+
+
+        corbeille = GameObject.Find("Corbeille");
+        if (corbeille == null){ 
+            Debug.LogError("Corbeille non trouvée dans la scène");
+            return;
         }
+
+
+        cylinder = GameObject.Find("Cylinder");
+        if (cylinder == null){ 
+            Debug.LogError("Cylindre non trouvée dans la scène");
+            return;
+        }
+
+        ball = GameObject.Find("Ball");
+        if (ball == null){
+            Debug.LogError("Balle non trouvée dans la scène");
+            return;
+        }
+
+        UpdateScore();
     }
 
     // Méthode pour mettre à jour le texte du score
-    void UpdateScoreText()
+    void UpdateScore()
     {
         // Vérifie si la distance entre la balle et le cylindre est suffisamment petite pour indiquer un contact
         float distance = Vector3.Distance(ball.transform.position, cylinder.transform.position);
@@ -49,17 +69,10 @@ public class Score : MonoBehaviour
             
             // Corbeille verte
             corbeille.GetComponent<MeshRenderer>().material.color = new Color(0f, 1f, 0f, 1f);
-        scoreText.text = scoreValue.ToString();
-    }
 
-    // Méthode appelée lorsqu'une balle entre en collision avec le cylindre
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Vérifie si l'objet en collision a le tag "Ball"
-        if (collision.gameObject.CompareTag("Ball")) // Assurez-vous que vos balles ont le tag "Ball"
-        {
-            scoreValue++; // Augmente le score
-            UpdateScoreText(); // Met à jour le texte du score
+            // + 1
+            scoreValue++;
+            scoreText.text = scoreValue.ToString();
         }
     }
 }
