@@ -1,0 +1,15 @@
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.AssemblyInfoInputs.cache
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.AssemblyInfo.cs
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.csproj.CoreCompileInputs.cache
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.sourcelink.json
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\bin\Debug\net8.0\ServerApp.exe
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\bin\Debug\net8.0\ServerApp.deps.json
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\bin\Debug\net8.0\ServerApp.runtimeconfig.json
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\bin\Debug\net8.0\ServerApp.dll
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\bin\Debug\net8.0\ServerApp.pdb
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.dll
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\refint\ServerApp.dll
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.pdb
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ServerApp.genruntimeconfig.cache
+C:\Users\marie\OneDrive\Bureau\Rob5_TI\MTI860_VR\project\vr-project\ServerApp\obj\Debug\net8.0\ref\ServerApp.dll

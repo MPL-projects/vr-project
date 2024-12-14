@@ -1,0 +1,309 @@
+using UnityEngine;
+using System.IO;
+using UnityEngine.UI;
+using TMPro;
+using Oculus.Interaction;
+using System.Collections;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+public class GameController : MonoBehaviour
+{
+    public int scoreValue = 0; // Le score actuel
+    private TMP_Text scoreText; // Référence au composant Text pour afficher le score
+    private TMP_Text nombreLancerText; // Référence au texte pour afficher le nombre de lancers restants
+    private TMP_Text isGrabText; // Référence au texte pour indiquer si c'est grab
+    private GameObject corbeille;
+    private GameObject cylinder;
+    private GameObject ball;
+
+    public GameObject imageObject;  // Référence à l'objet Image dans l'UI
+    private Image imageComponent;   // Composant Image de l'objet
+
+    Sprite checkSprite;  // Sprite pour l'état "marqué"
+    Sprite crossSprite;  // Sprite pour l'état "non marqué"
+
+    private Vector3 initialBallPosition; // Position initiale de la balle
+    private float timeOutOfInitialPosition = 0f; // Temps écoulé depuis que la balle a quitté sa position initiale
+    public float resetTime = 10f; // Temps maximum avant réinitialisation
+    public GameObject sol; // Plan de référence
+    public float maxDistance = 5f; // Distance maximale autorisée depuis le plan
+
+    public int throwCount = 0; // Compteur de lancers
+    public int maxThrows = 10; // Nombre maximum de lancers
+
+    private bool isScored = false;
+    private bool isGrab = false;
+
+    private int test_throw = 0;
+    private int test_score = 0;
+
+    // Variables pour gérer le client TCP
+    private TcpClient client;
+    private NetworkStream stream;
+    private const string serverIp = "192.168.0.173"; 
+    private const int serverPort = 5000; // Port du serveur
+    private bool isRunning = true;
+
+    // Variable pour stocker la distance du premier rebond (sur le plan x, z)
+    private float reboundDistance = -1f;  // -1 pour indiquer qu'aucun rebond n'a eu lieu
+
+    void Start()
+    {
+        // Initialisation des références
+        scoreText = GameObject.Find("Canvas/Panel/ScoreText")?.GetComponent<TMP_Text>();
+        nombreLancerText = GameObject.Find("Canvas/Panel/nombreLancerText")?.GetComponent<TMP_Text>();
+        isGrabText = GameObject.Find("Canvas/Panel/isGrabText")?.GetComponent<TMP_Text>();
+
+        corbeille = GameObject.Find("Corbeille");
+        cylinder = GameObject.Find("Cylinder");
+        ball = GameObject.Find("Ball");
+
+        // Charger les sprites à partir des ressources
+        checkSprite = Resources.Load<Sprite>("Images/check");  
+        crossSprite = Resources.Load<Sprite>("Images/croix");
+
+        if (corbeille == null || cylinder == null || ball == null)
+        {
+            Debug.LogError("Un ou plusieurs objets nécessaires sont manquants !");
+            return;
+        }
+
+        initialBallPosition = ball.transform.position;
+
+        // Démarre un thread pour envoyer les données au serveur
+        Thread clientThread = new Thread(ConnectAndSendData);
+        clientThread.Start();
+
+
+        // Mettre à jour les textes au démarrage
+        UpdateScoreText();
+        UpdateNombreLancerText();
+        UpdateGrabText();
+    }
+
+    void Update()
+    {
+        if (throwCount >= maxThrows)
+        {
+            Debug.Log("Nombre maximum de lancers atteint !");
+            return; // Arrête les interactions si le nombre maximum de lancers est atteint
+        }
+
+        // Mettre à jour l'état de grab
+        UpdateGrabText();
+        IsGrab();
+
+        // Vérifier la collision et la réinitialisation
+        CheckCollision();
+        CheckBallReset();
+
+        // Mise à jour des textes de score et nombre de lancers
+        UpdateScoreText();
+        UpdateNombreLancerText();
+    }
+
+    // Met à jour le texte du score dans l'UI
+    void UpdateScoreText()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = "Score: " + scoreValue;
+        }
+        else
+        {
+            Debug.LogError("ScoreText n'est pas trouvé dans l'UI !");
+        }
+    }
+
+    // Met à jour le texte du nombre de lancers restants
+    void UpdateNombreLancerText()
+    {
+        if (nombreLancerText != null)
+        {
+            nombreLancerText.text = "Lancers Restants: " + (maxThrows - throwCount);
+        }
+        else
+        {
+            Debug.LogError("nombreLancerText n'est pas trouvé dans l'UI !");
+        }
+    }
+
+    // Met à jour l'état du grab dans l'UI (si nécessaire)
+    void UpdateGrabText()
+    {
+        if (isGrabText != null)
+        {
+            isGrabText.text = isGrab ? "Grab: Oui" : "Grab: Non";
+        }
+        else
+        {
+            Debug.LogError("isGrabText n'est pas trouvé dans l'UI !");
+        }
+    }
+
+    // Vérifie si la balle a marqué un point
+    void CheckCollision()
+    {
+        float distance = Vector3.Distance(ball.transform.position, cylinder.transform.position);
+
+        if (!isScored && distance < 0.5f) // Si la balle n'a pas encore marqué
+        {
+            isScored = true;
+
+            // Réinitialiser après un délai si nécessaire
+            StartCoroutine(ChangeColorAfterDelay());
+        }
+        else if (distance >= 0.5f)
+        {
+            isScored = false; // Réinitialise si la balle s'éloigne
+        }
+
+        // Si la balle touche le sol et rebondit, calculez la distance du rebond
+        if (ball.GetComponent<Rigidbody>().velocity.y == 0 && reboundDistance == -1f)
+        {
+            // Calculer la distance entre la balle et le cylindre (corbeille) sur le plan XZ
+            Vector3 ballXZ = new Vector3(ball.transform.position.x, 0f, ball.transform.position.z);
+            Vector3 cylinderXZ = new Vector3(cylinder.transform.position.x, 0f, cylinder.transform.position.z);
+            reboundDistance = Vector3.Distance(ballXZ, cylinderXZ);
+            Debug.Log($"Distance du premier rebond (plan XZ): {reboundDistance}");
+        }
+    }
+
+    // Vérifie la distance et réinitialise la balle si nécessaire
+    void CheckBallReset()
+    {
+        if (sol != null)
+        {
+            float distanceFromPlane = Vector3.Distance(ball.transform.position, sol.transform.position);
+
+            if (distanceFromPlane > maxDistance) // Réinitialise immédiatement si la balle dépasse la distance maximale
+            {
+                ResetBallPosition();
+                return;
+            }
+        }
+        if (isScored)
+            {
+                ResetBallPosition();
+                return;
+            }
+
+        // Réinitialiser si nécessaire
+        if (ball.transform.position != initialBallPosition)
+        {
+            timeOutOfInitialPosition += Time.deltaTime;
+
+            if (timeOutOfInitialPosition >= resetTime)
+            {
+                ResetBallPosition();
+            }
+        }
+    }
+
+    // Réinitialise la balle et les compteurs
+    void ResetBallPosition()
+    {
+        ball.transform.position = initialBallPosition;
+        timeOutOfInitialPosition = 0f;
+
+        Rigidbody rb = ball.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Réinitialiser la distance du rebond pour le prochain lancer
+        reboundDistance = -1f;
+
+        if (throwCount < maxThrows)
+        {
+            if(isGrab){
+                throwCount++;
+                UpdateNombreLancerText(); // Mise à jour du texte de nombre de lancers
+                UpdateImage();
+                UpdateScoreText(); // Met à jour l'UI avec le nouveau score
+
+            }
+
+            // Réinitialiser l'état de grab si nécessaire
+            isGrab = false;
+            UpdateGrabText();
+        }
+    }
+
+    void UpdateImage(){
+
+        // Trouver l'objet Image dynamique dans le Canvas et assigner le sprite en fonction de isScored
+        imageObject = GameObject.Find("Canvas/Image" + throwCount.ToString());
+        imageComponent = imageObject.GetComponent<Image>();
+
+        if (imageObject != null)
+        {
+            // Mettre à jour le sprite en fonction de l'état isScored
+            if(isScored)
+            {
+                scoreValue++;
+                imageComponent.sprite = checkSprite;
+            }
+            else{
+                imageComponent.sprite = crossSprite;
+            }
+        }
+        
+    }
+
+    void IsGrab()
+    {
+        if(ball.transform.position.y > 0.5) // Si la balle est au dessus de 50 cm alors elle est grab
+        {
+            isGrab = true;  
+        }
+    }
+
+    // Connexion au serveur et envoi des données à chaque lancer
+    private void ConnectAndSendData()
+    {
+        client = new TcpClient(serverIp, serverPort); // Connexion au serveur
+        stream = client.GetStream();
+
+        while (isRunning)
+        {
+            // Envoie du message avec les informations du lancer
+            if (throwCount <= maxThrows && throwCount == (test_throw+1) )
+            {
+                string message = $"Essais: {throwCount}, Restant: {maxThrows - throwCount}, Score: {scoreValue}, " +
+                                 $"Resultat: {(test_score < scoreValue ? "Reussi" : "Echoue")}, " +
+                                 $"Distance du rebond (plan XZ): {reboundDistance}";
+                byte[] data = Encoding.ASCII.GetBytes(message);
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyé : " + message);
+                test_throw++;
+                if(test_score < scoreValue)
+                {
+                    test_score++;
+                }
+            }
+
+            // Attendre avant d'envoyer les données suivantes
+            Thread.Sleep(1000);
+        }
+    }
+
+    void OnApplicationQuit()
+    {
+        // Ferme le client proprement
+        isRunning = false;
+        if (stream != null) stream.Close();
+        if (client != null) client.Close();
+    }
+
+    IEnumerator ChangeColorAfterDelay()
+    {
+        corbeille.GetComponent<MeshRenderer>().material.color = new Color(0f, 1f, 0f, 1f); // Change en vert
+        yield return new WaitForSeconds(3f); // Attend 3 secondes
+        corbeille.GetComponent<MeshRenderer>().material.color = new Color(1f, 0.5f, 0f, 1f); // Retourne à orange
+    }
+}

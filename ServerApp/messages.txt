@@ -1,0 +1,10 @@
+[13/12/2024 23:49:11] Essais: 1, Restant: 9, Score: 0, Resultat: Echoue, Distance du rebond: 0,475709141587731
+[13/12/2024 23:49:21] Essais: 2, Restant: 8, Score: 0, Resultat: Echoue, Distance du rebond: 0,500033126414276
+[13/12/2024 23:49:30] Essais: 3, Restant: 7, Score: 0, Resultat: Echoue, Distance du rebond: 0,53587665641281
+[13/12/2024 23:49:34] Essais: 4, Restant: 6, Score: 1, Resultat: Reussi, Distance du rebond: 0
+[13/12/2024 23:49:39] Essais: 5, Restant: 5, Score: 1, Resultat: Echoue, Distance du rebond: 1,08866519032431
+[13/12/2024 23:49:43] Essais: 6, Restant: 4, Score: 2, Resultat: Reussi, Distance du rebond: 0
+[13/12/2024 23:49:52] Essais: 7, Restant: 3, Score: 2, Resultat: Echoue, Distance du rebond: 0,3796815640246
+[13/12/2024 23:50:02] Essais: 8, Restant: 2, Score: 3, Resultat: Reussi, Distance du rebond: 0
+[13/12/2024 23:50:07] Essais: 9, Restant: 1, Score: 3, Resultat: Echoue, Distance du rebond: 0,070166692699915
+[13/12/2024 23:50:17] Essais: 10, Restant: 0, Score: 3, Resultat: Echoue, Distance du rebond: 0,147894209573146
